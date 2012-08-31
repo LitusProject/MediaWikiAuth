@@ -114,6 +114,9 @@ function fnLitusAuthFromSession( $user, &$result ) {
 				$u->setRealName( $username );
 				$u->setEmail( $litusUser->email );
 				
+				// set emailauthenticated
+				$u->mEmailAuthenticated = wfTimestampNow();
+				
 				// set the password to an unexisting md5 hash:
 				$u->setPassword( '*' ); 
 				
