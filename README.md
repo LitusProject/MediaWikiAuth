@@ -26,13 +26,6 @@ $wgLitusAPIKey = 'abcdefghijklmnopqrstuvwxyz';
 
 /* The Litus server itself, for the login link, without trailing slash! */
 $wgLitusServer = 'https://litus.cc';
-
-/* The names of the Special:UserLogin page for every language used */
-$wgLitusUserLoginTitles = array( 'Special:UserLogin' );
-
-/* The names of the Special:UserLogout page for every language used */
-$wgLitusUserLogoutTitles = array( 'Special:UserLogout' );
 ```
 
 Replace the $wgLitusAPIServer, $wgLitusAPIKey and $wgLitusServer values with the real values for your Litus installation.
-The values for $wgLitusUserLoginTitles and $wgLitusLogoutTitles should contain the titles of the login and logout pages in every language used on the wiki. __Always__ include the English titles!

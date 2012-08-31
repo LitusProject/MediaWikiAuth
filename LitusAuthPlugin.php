@@ -35,12 +35,6 @@ $wgLitusAPIKey = '';
 /* The Litus server itself, for login/logout links */
 $wgLitusServer = '';
 
-/* whether or not to allow standard wiki authentication */
-$wgLitusAllowLocalAuth = false;
-
-/* the text shown on the login link for litus logins, only applicable if $wgLitusAllowLocalAuth == true */
-$wgLitusLoginHint = 'Litus login';
-
 /* Disable password reset */
 $wgPasswordResetRoutes = false;
 
@@ -98,9 +92,9 @@ function fnLitusAuthFromSession( $user, &$result ) {
 	global $wgLitusUserLoginTitles, $wgLitusLogoutTitles, $wgLitusServer;
 	
 	if ( isset( $_REQUEST['title'] ) ) {
-		$lg = Language::factory($wgLanguageCode);
+		$title = Title::newFromText( $wgRequest->getVal( 'title' ) );
 		
-		if ( in_array( $_REQUEST['title'], $wgLitusUserLoginTitles ) ) {
+		if ( $title->isSpecial( 'Userlogin' ) ) {
 			$litusUser = LitusApi::getUserInfo();
 			
 			// TODO abort if not student, redirect to page saying that only students have access?
@@ -150,7 +144,7 @@ function fnLitusAuthFromSession( $user, &$result ) {
 					$wgOut->redirect( $url . '?action=purge' );
 				}
 			}
-		} else if ( $_REQUEST['title'] == $lg->specialPage( 'UserLogout' ) ) {
+		} else if ( $title->isSpecial( 'Userlogout' ) ) {
 			$user->logout();
 		}
 	} else
