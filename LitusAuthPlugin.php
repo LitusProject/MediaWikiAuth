@@ -89,7 +89,7 @@ $wgHooks['UserLoadFromSession'][] = 'fnLitusAuthFromSession';
 
 function fnLitusAuthFromSession( $user, &$result ) {
     global $wgLanguageCode, $wgRequest, $wgOut;
-    global $$wgLitusServer;
+    global $wgLitusServer;
     
     if ( isset( $_REQUEST['title'] ) ) {
         $title = Title::newFromText( $wgRequest->getVal( 'title' ) );
