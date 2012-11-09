@@ -89,18 +89,18 @@ $wgHooks['UserLoadFromSession'][] = 'fnLitusAuthFromSession';
 
 function fnLitusAuthFromSession( $user, &$result ) {
     global $wgLanguageCode, $wgRequest, $wgOut;
-    global $wgLitusUserLoginTitles, $wgLitusLogoutTitles, $wgLitusServer;
+    global $$wgLitusServer;
     
     if ( isset( $_REQUEST['title'] ) ) {
         $title = Title::newFromText( $wgRequest->getVal( 'title' ) );
         
         if ( $title->isSpecial( 'Userlogin' ) ) {
             $litusUser = LitusApi::getUserInfo();
-            
+
             // TODO abort if not student, redirect to page saying that only students have access?
             
             if ( !$litusUser ) {
-                header('Location: ' . $wgLitusServer . '/admin/auth/login');
+                header('Location: ' . $wgLitusServer . '/wiki/auth/login');
                 exit();
             }
             
