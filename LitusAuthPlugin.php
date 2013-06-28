@@ -38,13 +38,22 @@ $wgLitusServer = '';
 /* Disable password reset */
 $wgPasswordResetRoutes = false;
 
+/* Required status to be allowed to log in */
+$wgLitusRequiredStatus = array(
+    'university_status' => false,
+    'organization_status' => false
+);
+
+/* The web page to redirect to if the user has an invalid status. */
+$wgLitusInvalidStatusRedirect = false;
+
 /**
  * Add extension information to Special:Version
  */
 $wgExtensionCredits['other'][] = array(
     'path' => __FILE__,
     'name' => 'Litus Authentication Plugin',
-    'version' => '0.1',
+    'version' => '0.2',
     'author' => '[https://github.com/LitusProject The Litus Project]',
     'description' => 'Automatic login using a Litus API server.',
     'url' => 'https://github.com/LitusProject/MediaWikiAuth'
@@ -68,11 +77,11 @@ class LitusApi {
         $postData['key'] = $wgLitusAPIKey;
         $postData['session'] = $_COOKIE['Litus_Auth_Session'];
         
-        return Http::post( $wgLitusAPIServer . $url, array( 'postData' => $postData ) );
-    }
-
-    public static function isLoggedIn() {
-        return 'true' == self::sendApiRequest( '/auth/isLoggedIn' );
+        $result = Http::post( $wgLitusAPIServer . $url, array( 'postData' => $postData ) );
+        
+        if ( preg_match( '/error/', $result ) )
+            return false;
+        return $result;
     }
     
     public static function getUserInfo() {
@@ -89,18 +98,28 @@ $wgHooks['UserLoadFromSession'][] = 'fnLitusAuthFromSession';
 
 function fnLitusAuthFromSession( $user, &$result ) {
     global $wgLanguageCode, $wgRequest, $wgOut;
-    global $wgLitusServer;
+    global $wgLitusServer, $wgLitusRequiredStatus;
     
     if ( isset( $_REQUEST['title'] ) ) {
         $title = Title::newFromText( $wgRequest->getVal( 'title' ) );
         
         if ( $title->isSpecial( 'Userlogin' ) ) {
             $litusUser = LitusApi::getUserInfo();
-
-            // TODO abort if not student, redirect to page saying that only students have access?
             
             if ( !$litusUser ) {
                 header('Location: ' . $wgLitusServer . '/wiki/auth/login');
+                exit();
+            }
+
+            // if not a valid status, redirect to page set by user
+            if ( ( $wgLitusRequiredStatus['university_status'] !== false
+                    && $litusUser->university_status !== $wgLitusRequiredStatus['university_status'] )
+                 || ( $wgLitusRequiredStatus['organization_status'] !== false
+                     && $litusUser->organization_status !== $wgLitusRequiredStatus['organization_status'] ) ) {
+                global $wgLitusInvalidStatusRedirect;
+                header( 'Location: ' . ( $wgLitusInvalidStatusRedirect !== false
+                                            ? $wgLitusInvalidStatusRedirect
+                                            : $wgLitusServer ) );
                 exit();
             }
             
