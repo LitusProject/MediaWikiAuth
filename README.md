@@ -26,13 +26,22 @@ Edit your LocalSettings.php, add somewhere at the bottom:
 require_once($IP . '/extensions/LitusAuth/LitusAuthPlugin.php');
 
 /* The Litus API Server to use for authentication, without trailing slash. */
-$wgLitusAPIServer = 'https://api.litus.cc';
+$wgLitusAPIServer = 'https://litus.cc/api';
 
 /* The API key */
 $wgLitusAPIKey = 'abcdefghijklmnopqrstuvwxyz';
 
 /* The Litus server itself, for the login link, without trailing slash! */
 $wgLitusServer = 'https://litus.cc';
+
+/* Required status to be allowed to log in */
+$wgLitusRequiredStatus = array(
+    'university_status' => false,
+    'organization_status' => false
+);
+
+/* The web page to redirect to if the user has an invalid status. */
+$wgLitusInvalidStatusRedirect = false;
 ```
 
 Replace the $wgLitusAPIServer, $wgLitusAPIKey and $wgLitusServer values with the real values for your Litus installation.
