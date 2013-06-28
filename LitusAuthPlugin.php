@@ -68,27 +68,27 @@ class LitusApi {
         global $wgLitusAPIServer;
         global $wgLitusAPIKey;
         global $litusCookiePresent;
-        
+
         // if there's no session cookie, we can't be logged in, return false
         if ( !$litusCookiePresent )
             return false;
-        
+
         // add the API key and session cookie to the POST data
         $postData['key'] = $wgLitusAPIKey;
         $postData['session'] = $_COOKIE['Litus_Auth_Session'];
-        
+
         $result = Http::post( $wgLitusAPIServer . $url, array( 'postData' => $postData ) );
-        
+
         if ( preg_match( '/error/', $result ) )
             return false;
         return $result;
     }
-    
+
     public static function getUserInfo() {
         $json = self::sendApiRequest( '/auth/getPerson' );
         if ( !$json )
             return false;
-        
+
         return json_decode( $json );
     }
 }
@@ -99,13 +99,13 @@ $wgHooks['UserLoadFromSession'][] = 'fnLitusAuthFromSession';
 function fnLitusAuthFromSession( $user, &$result ) {
     global $wgLanguageCode, $wgRequest, $wgOut;
     global $wgLitusServer, $wgLitusRequiredStatus;
-    
+
     if ( isset( $_REQUEST['title'] ) ) {
         $title = Title::newFromText( $wgRequest->getVal( 'title' ) );
-        
+
         if ( $title->isSpecial( 'Userlogin' ) ) {
             $litusUser = LitusApi::getUserInfo();
-            
+
             if ( !$litusUser ) {
                 header('Location: ' . $wgLitusServer . '/wiki/auth/login');
                 exit();
@@ -122,35 +122,35 @@ function fnLitusAuthFromSession( $user, &$result ) {
                                             : $wgLitusServer ) );
                 exit();
             }
-            
+
             // TODO: s-nr als ID gebruiken?
             $username = $litusUser->full_name;
             $u = User::newFromName( $username );
-            
+
             // Create a new user if it's the first time this user logs in
             if ( $u->getID() == 0 ) {
                 $u->addToDatabase();
                 $u->setRealName( $username );
                 $u->setEmail( $litusUser->email );
-                
+
                 // set emailauthenticated
                 $u->mEmailAuthenticated = wfTimestampNow();
-                
+
                 // set the password to an unexisting md5 hash:
                 $u->setPassword( '*' ); 
-                
+
                 $u->setToken();
                 $u->saveSettings();
-                
+
                 $ssUpdate = new SiteStatsUpdate( 0, 0, 0, 0, 1 );
                 $ssUpdate->doUpdate();
             }
-            
+
             $u->setOption( 'rememberpassword', 1 );
             $u->setCookies();
-            
+
             $user = $u;
-            
+
             // Redirect if a returnto parameter exists
             $returnto = $wgRequest->getVal( 'returnto' );
             if ( $returnto ) {
@@ -161,7 +161,7 @@ function fnLitusAuthFromSession( $user, &$result ) {
                         $url = Title::newMainPage()->getFullUrl();
                     else
                         $url = $target->getFullUrl();
-                    
+
                     // action=purge is used to purge the cache
                     $wgOut->redirect( $url . '?action=purge' );
                 }
@@ -171,6 +171,6 @@ function fnLitusAuthFromSession( $user, &$result ) {
         }
     } else
         die( 'Title not set...' );
-    
+
     return true;
 }
