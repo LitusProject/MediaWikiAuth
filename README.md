@@ -26,7 +26,7 @@ Edit your LocalSettings.php, add somewhere at the bottom:
 require_once($IP . '/extensions/LitusAuth/LitusAuthPlugin.php');
 
 /* The Litus API Server to use for authentication, without trailing slash. */
-$wgLitusAPIServer = 'https://api.litus.cc';
+$wgLitusAPIServer = 'https://litus.cc/api';
 
 /* The API key */
 $wgLitusAPIKey = 'abcdefghijklmnopqrstuvwxyz';
