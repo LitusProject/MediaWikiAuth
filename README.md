@@ -15,13 +15,18 @@ Custom MediaWiki module that authenticates against Litus.
 You have to have mediawiki installed and configured.
 To use curl instead of the standard PHP http requests, make sure php5-curl (on ubuntu) is installed.
 
-Execute in a shell:
+* Execute in a shell:
 ```bash
 cd <path to your mediawiki folder>/extensions
 git clone https://github.com/LitusProject/MediaWikiAuth.git LitusAuth
 ```
 
-Edit your LocalSettings.php, add somewhere at the bottom:
+* Edit your LocalSettings.php:  
+    * Make sure that the ```$wgServer``` variable does not contain a protocol, e.g. ```//en.wikipedia.org```
+instead of ```https://en.wikipedia.org```.  
+
+    * Add somewhere at the bottom (Replace the ```$wgLitus*``` values with the real values for your Litus installation)
+
 ```php
 require_once($IP . '/extensions/LitusAuth/LitusAuthPlugin.php');
 
@@ -43,14 +48,12 @@ $wgLitusRequiredStatus = array(
 /* The web page to redirect to if the user has an invalid status, false if not set. */
 $wgLitusInvalidStatusRedirect = false;
 
-/* The callback page for the login */
+/* The callback page for the login, returnto is de _default_ page to return to */
 $wgLitusLoginCallback = array(
     'title' => 'Special:UserLogin',
     'returnto' => 'Main+Page'
 );
 ```
-
-Replace the $wgLitusAPIServer, $wgLitusAPIKey and $wgLitusServer values with the real values for your Litus installation.
 
 ## License
 ```
