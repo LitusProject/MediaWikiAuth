@@ -105,7 +105,7 @@ $wgPasswordResetRoutes = false;
 function fnLitusAuthFromSession( $user, &$result ) {
     global $wgLanguageCode, $wgRequest, $wgOut;
     global $wgLitusServer, $wgLitusRequiredStatus;
-    global $wgLitusLoginCallback;
+    global $wgLitusLoginCallback, $wgServer, $wgScript;
 
     if ( isset( $_REQUEST['title'] ) ) {
         $title = Title::newFromText( $wgRequest->getVal( 'title' ) );
