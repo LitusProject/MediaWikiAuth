@@ -166,21 +166,20 @@ function fnLitusAuthFromSession( $user, &$result ) {
 
             $user = $u;
 
-            // Redirect if a returnto parameter exists
+            // Redirect if a returnto parameter exists, else go to main page
             $returnto = $wgRequest->getVal( 'returnto' );
+            $url = Title::newMainPage()->getFullUrl();
             if ( $returnto ) {
                 $target = Title::newFromText( $returnto );
                 if ( $target ) {
                     // make sure we don't loop to logout
-                    if ( $target->getNameSpace() == NS_SPECIAL )
-                        $url = Title::newMainPage()->getFullUrl();
-                    else
+                    if ( $target->getNameSpace() != NS_SPECIAL )
                         $url = $target->getFullUrl();
-
-                    // action=purge is used to purge the cache
-                    $wgOut->redirect( $url . '?action=purge' );
                 }
             }
+
+            // action=purge is used to purge the cache
+            $wgOut->redirect( $url . '?action=purge' );
         } else if ( $title->isSpecial( 'Userlogout' ) ) {
             $user->logout();
         }
