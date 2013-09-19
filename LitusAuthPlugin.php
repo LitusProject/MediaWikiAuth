@@ -122,7 +122,7 @@ function fnLitusAuthFromSession( $user, &$result ) {
                                 . '?title=' . $wgLitusLoginCallback['title']
                                 . '&returnto=' . $returnto;
                 
-                header( 'Location: ' . $wgLitusServer . '/wiki/auth/login/' . urlencode( $callback ) );
+                header( 'Location: ' . $wgLitusServer . '/wiki/auth/login/redirect/' . urlencode( $callback ) );
                 exit();
             }
 
