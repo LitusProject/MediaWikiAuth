@@ -33,6 +33,21 @@ $wgLitusAPIKey = 'abcdefghijklmnopqrstuvwxyz';
 
 /* The Litus server itself, for the login link, without trailing slash! */
 $wgLitusServer = 'https://litus.cc';
+
+/* Required status to be allowed to log in */
+$wgLitusRequiredStatus = array(
+    'university_status' => false,
+    'organization_status' => false
+);
+
+/* The web page to redirect to if the user has an invalid status, false if not set. */
+$wgLitusInvalidStatusRedirect = false;
+
+/* The callback page for the login */
+$wgLitusLoginCallback = array(
+    'title' => 'Special:UserLogin',
+    'returnto' => 'Main+Page'
+);
 ```
 
 Replace the $wgLitusAPIServer, $wgLitusAPIKey and $wgLitusServer values with the real values for your Litus installation.

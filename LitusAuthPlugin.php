@@ -35,9 +35,6 @@ $wgLitusAPIKey = '';
 /* The Litus server itself, for login/logout links */
 $wgLitusServer = '';
 
-/* Disable password reset */
-$wgPasswordResetRoutes = false;
-
 /* Required status to be allowed to log in */
 $wgLitusRequiredStatus = array(
     'university_status' => false,
@@ -46,6 +43,12 @@ $wgLitusRequiredStatus = array(
 
 /* The web page to redirect to if the user has an invalid status. */
 $wgLitusInvalidStatusRedirect = false;
+
+/* The callback page for the login */
+$wgLitusLoginCallback = array(
+    'title' => 'Special:UserLogin',
+    'returnto' => 'Main+Page'
+);
 
 /**
  * Add extension information to Special:Version
@@ -96,9 +99,13 @@ class LitusApi {
 /* add auto-auth hook */
 $wgHooks['UserLoadFromSession'][] = 'fnLitusAuthFromSession';
 
+/* Disable password reset */
+$wgPasswordResetRoutes = false;
+
 function fnLitusAuthFromSession( $user, &$result ) {
     global $wgLanguageCode, $wgRequest, $wgOut;
     global $wgLitusServer, $wgLitusRequiredStatus;
+    global $wgLitusLoginCallback;
 
     if ( isset( $_REQUEST['title'] ) ) {
         $title = Title::newFromText( $wgRequest->getVal( 'title' ) );
@@ -107,7 +114,15 @@ function fnLitusAuthFromSession( $user, &$result ) {
             $litusUser = LitusApi::getUserInfo();
 
             if ( !$litusUser ) {
-                header('Location: ' . $wgLitusServer . '/wiki/auth/login');
+                $returnto = $wgRequest->getVal( 'returnto' );
+                if ( ! $returnto )
+                    $returnto = $wgLitusLoginCallback['returnto'];
+                
+                $callback = 'https:' . $wgServer . $wgScript
+                                . '?title=' . $wgLitusLoginCallback['title']
+                                . '&returnto=' . $returnto;
+                
+                header( 'Location: ' . $wgLitusServer . '/wiki/auth/login/' . urlencode( $callback ) );
                 exit();
             }
 
