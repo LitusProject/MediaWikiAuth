@@ -53,6 +53,12 @@ $wgLitusLoginCallback = array(
     'title' => 'Special:UserLogin',
     'returnto' => 'Main+Page'
 );
+
+/* The cookie to use for authentication */
+$wgLitusAuthCookie = 'Litus_Auth_Session';
+
+/* Allow the user with this user ID to login regardless of university and organization status */
+$wgLitusAdminUserid = false;
 ```
 
 ## License
