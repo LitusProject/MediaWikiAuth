@@ -53,6 +53,9 @@ $wgLitusLoginCallback = array(
 /* The cookie to use for authentication */
 $wgLitusAuthCookie = 'Litus_Auth_Session';
 
+/* Allow the user with this user ID to login regardless of university and organization status */
+$wgLitusAdminUserid = false;
+
 /**
  * Add extension information to Special:Version
  */
@@ -111,6 +114,7 @@ function fnLitusAuthFromSession( $user, &$result ) {
     global $wgLanguageCode, $wgRequest, $wgOut;
     global $wgLitusServer, $wgLitusRequiredStatus;
     global $wgLitusLoginCallback, $wgServer, $wgScript;
+    global $wgLitusAdminUserid;
 
     if ( isset( $_REQUEST['title'] ) ) {
         $title = Title::newFromText( $wgRequest->getVal( 'title' ) );
@@ -132,10 +136,16 @@ function fnLitusAuthFromSession( $user, &$result ) {
             }
 
             // if not a valid status, redirect to page set by user
-            if ( ( $wgLitusRequiredStatus['university_status'] !== false
+            $validRequest = true;
+            if ( $wgLitusRequiredStatus['university_status'] !== false
                     && $litusUser->university_status !== $wgLitusRequiredStatus['university_status'] )
-                 || ( $wgLitusRequiredStatus['organization_status'] !== false
-                     && $litusUser->organization_status !== $wgLitusRequiredStatus['organization_status'] ) ) {
+                $validRequest = false;
+            if ( $wgLitusRequiredStatus['organization_status'] !== false
+                     && $litusUser->organization_status !== $wgLitusRequiredStatus['organization_status'] ) 
+                $validRequest = false;
+            if ( $wgLitusAdminUserid !== false && $litusUser->username === $wgLitusAdminUserid )
+                $validRequest = true;
+            if ( !$validRequest ) {
                 global $wgLitusInvalidStatusRedirect;
                 header( 'Location: ' . ( $wgLitusInvalidStatusRedirect !== false
                                             ? $wgLitusInvalidStatusRedirect
