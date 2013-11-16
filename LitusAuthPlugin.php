@@ -50,6 +50,9 @@ $wgLitusLoginCallback = array(
     'returnto' => 'Main+Page'
 );
 
+/* The cookie to use for authentication */
+$wgLitusAuthCookie = 'Litus_Auth_Session';
+
 /**
  * Add extension information to Special:Version
  */
@@ -62,23 +65,25 @@ $wgExtensionCredits['other'][] = array(
     'url' => 'https://github.com/LitusProject/MediaWikiAuth'
 );
 
-/* check whether the Litus session cookie is present */
-$litusCookiePresent = array_key_exists( 'Litus_Auth_Session', $_COOKIE );
-
 class LitusApi {
+    public static function isLitusCookiePresent() {
+        global $wgLitusAuthCookie;
+        
+        return array_key_exists( $wgLitusAuthCookie, $_COOKIE );
+    }
 
     private static function sendApiRequest( $url, $postData = array() ) {
         global $wgLitusAPIServer;
         global $wgLitusAPIKey;
-        global $litusCookiePresent;
+        global $wgLitusAuthCookie;
 
         // if there's no session cookie, we can't be logged in, return false
-        if ( !$litusCookiePresent )
+        if ( !self::isLitusCookiePresent() )
             return false;
 
         // add the API key and session cookie to the POST data
         $postData['key'] = $wgLitusAPIKey;
-        $postData['session'] = $_COOKIE['Litus_Auth_Session'];
+        $postData['session'] = $_COOKIE[$wgLitusAuthCookie];
 
         $result = Http::post( $wgLitusAPIServer . $url, array( 'postData' => $postData ) );
 
