@@ -153,8 +153,7 @@ function fnLitusAuthFromSession( $user, &$result ) {
                 exit();
             }
 
-            // TODO: s-nr als ID gebruiken?
-            $username = $litusUser->username;
+            $username = ucfirst( $litusUser->username );
             $u = User::newFromName( $username );
 
             // Create a new user if it's the first time this user logs in
