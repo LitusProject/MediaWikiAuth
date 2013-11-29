@@ -114,7 +114,7 @@ function fnLitusAuthFromSession( $user, &$result ) {
     global $wgLanguageCode, $wgRequest, $wgOut;
     global $wgLitusServer, $wgLitusRequiredStatus;
     global $wgLitusLoginCallback, $wgServer, $wgScript;
-    global $wgLitusAdminUserid;
+    global $wgLitusAdminUserid, $wgAuth, $wgMemc;
 
     if ( isset( $_REQUEST['title'] ) ) {
         $title = Title::newFromText( $wgRequest->getVal( 'title' ) );
@@ -154,26 +154,91 @@ function fnLitusAuthFromSession( $user, &$result ) {
             }
 
             // TODO: s-nr als ID gebruiken?
-            $username = $litusUser->full_name;
+            $username = $litusUser->username;
             $u = User::newFromName( $username );
 
             // Create a new user if it's the first time this user logs in
             if ( $u->getID() == 0 ) {
-                $u->addToDatabase();
-                $u->setRealName( $username );
-                $u->setEmail( $litusUser->email );
+                // Check if the user already logged in using the "old" username
+                $u2 = User::newFromName( $litusUser->full_name );
+                if ( $u2->getID() != 0 ) {
+                    // if user already logged in with the old system, rename the user
+                    
+                    $u = $u2;
+                    $old = $litusUser->full_name;
+                    $new = $username;
+                    $uid = $u->getID();
+                    
+                    // we should really use a job to make this faster, but this will
+                    // run on the user being changed, which makes running a job quite
+                    // impossible.
+                    
+                    $dbw = wfGetDB( DB_MASTER );
+                    $dbw->begin();
+                    
+                    $dbw->update( 'user', // UPDATE user
+                        // SET user_name="...", user_touched=...
+                        array( 'user_name' => $new, 'user_touched' => $dbw->timestamp() ), 
+                        // WHERE user_name="..." AND user_id=...
+                        array( 'user_name' => $old, 'user_id', $uid ), 
+                        __METHOD__
+                    );
+                    
+                    if ( !$dbw->affectedRows() ) {
+                        die( 'Failed to change username from ' . $old . ' to ' . $new . '.' );
+                    }
+                    
+                    // clear authentication tokens
+                    $u = User::newFromId( $uid );
+                    $authUser = $wgAuth->getUserInstance( $u );
+                    $authUser->resetAuthToken();
+                    
+                    // delete memcache entry (if used?)
+                    $wgMemc->delete( wfMemcKey( 'user', 'id', $uid ) );
+                    
+                    // Update ipblock list if this user has a block in there.
+                    $dbw->update( 'ipblocks',
+                        array( 'ipb_address' => $this->new ),
+                        array( 'ipb_user' => $this->uid, 'ipb_address' => $this->old ),
+                        __METHOD__
+                    );
+                    
+                    // Update this users block/rights log. Ideally, the logs would be historical,
+                    // but it is really annoying when users have "clean" block logs by virtue of
+                    // being renamed, which makes admin tasks more of a pain...
+                    $oldTitle = Title::makeTitle( NS_USER, $this->old );
+                    $newTitle = Title::makeTitle( NS_USER, $this->new );
+                    $dbw->update( 'logging',
+                        array( 'log_title' => $newTitle->getDBkey() ),
+                        array( 'log_type' => array( 'block', 'rights' ),
+                               'log_namespace' => NS_USER,
+                               'log_title' => $oldTitle->getDBkey() ),
+                        __METHOD__
+                    );
+                    
+                    // commit
+                    $dbw->commit();
+                    
+                    $wgAuth->updateExternalDB( $u );
+                } else {
+                    // if the user has never logged in before, create user
+                    
+                    $u->addToDatabase();
+                    $u->setRealName( $litusUser->full_name );
+                    $u->setEmail( $litusUser->email );
 
-                // set emailauthenticated
-                $u->mEmailAuthenticated = wfTimestampNow();
+                    // set emailauthenticated
+                    $u->mEmailAuthenticated = wfTimestampNow();
 
-                // set the password to an unexisting md5 hash:
-                $u->setPassword( '*' ); 
+                    // set the password to an unexisting md5 hash:
+                    $u->setPassword( '*' ); 
 
-                $u->setToken();
-                $u->saveSettings();
+                    $u->setToken();
+                    $u->saveSettings();
 
-                $ssUpdate = new SiteStatsUpdate( 0, 0, 0, 0, 1 );
-                $ssUpdate->doUpdate();
+                    $ssUpdate = new SiteStatsUpdate( 0, 0, 0, 0, 1 );
+                    $ssUpdate->doUpdate();
+                }
             }
 
             $u->setOption( 'rememberpassword', 1 );
