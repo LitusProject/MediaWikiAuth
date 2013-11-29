@@ -198,16 +198,16 @@ function fnLitusAuthFromSession( $user, &$result ) {
                     
                     // Update ipblock list if this user has a block in there.
                     $dbw->update( 'ipblocks',
-                        array( 'ipb_address' => $this->new ),
-                        array( 'ipb_user' => $this->uid, 'ipb_address' => $this->old ),
+                        array( 'ipb_address' => $new ),
+                        array( 'ipb_user' => $uid, 'ipb_address' => $old ),
                         __METHOD__
                     );
                     
                     // Update this users block/rights log. Ideally, the logs would be historical,
                     // but it is really annoying when users have "clean" block logs by virtue of
                     // being renamed, which makes admin tasks more of a pain...
-                    $oldTitle = Title::makeTitle( NS_USER, $this->old );
-                    $newTitle = Title::makeTitle( NS_USER, $this->new );
+                    $oldTitle = Title::makeTitle( NS_USER, $old );
+                    $newTitle = Title::makeTitle( NS_USER, $new );
                     $dbw->update( 'logging',
                         array( 'log_title' => $newTitle->getDBkey() ),
                         array( 'log_type' => array( 'block', 'rights' ),
