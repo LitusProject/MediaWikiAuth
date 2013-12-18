@@ -159,7 +159,7 @@ function fnLitusAuthFromSession( $user, &$result ) {
             // Create a new user if it's the first time this user logs in
             if ( $u->getID() == 0 ) {
                 // Check if the user already logged in using the "old" username
-                $u2 = User::newFromName( $litusUser->full_name );
+                $u2 = User::newFromName( ucfirst( $litusUser->full_name ) );
                 if ( $u2->getID() != 0 ) {
                     // if user already logged in with the old system, rename the user
                     
@@ -219,7 +219,7 @@ function fnLitusAuthFromSession( $user, &$result ) {
                     $dbw->commit();
                     
                     $wgAuth->updateExternalDB( $u );
-                } else {
+                } else { // $u2 does not exist
                     // if the user has never logged in before, create user
                     
                     $u->addToDatabase();
