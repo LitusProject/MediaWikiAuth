@@ -13,7 +13,7 @@
  *
  * The above copyright notice and this permission notice shall
  * be included in all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -71,7 +71,7 @@ $wgExtensionCredits['other'][] = array(
 class LitusApi {
     public static function isLitusCookiePresent() {
         global $wgLitusAuthCookie;
-        
+
         return array_key_exists( $wgLitusAuthCookie, $_COOKIE );
     }
 
@@ -126,11 +126,11 @@ function fnLitusAuthFromSession( $user, &$result ) {
                 $returnto = $wgRequest->getVal( 'returnto' );
                 if ( ! $returnto )
                     $returnto = $wgLitusLoginCallback['returnto'];
-                
+
                 $callback = 'https:' . $wgServer . $wgScript
                                 . '?title=' . $wgLitusLoginCallback['title']
                                 . '&returnto=' . $returnto;
-                
+
                 header( 'Location: ' . $wgLitusServer . '/wiki/auth/login/redirect/' . urlencode( $callback ) );
                 exit();
             }
@@ -141,7 +141,7 @@ function fnLitusAuthFromSession( $user, &$result ) {
                     && $litusUser->university_status !== $wgLitusRequiredStatus['university_status'] )
                 $validRequest = false;
             if ( $wgLitusRequiredStatus['organization_status'] !== false
-                     && $litusUser->organization_status !== $wgLitusRequiredStatus['organization_status'] ) 
+                     && $litusUser->organization_status !== $wgLitusRequiredStatus['organization_status'] )
                 $validRequest = false;
             if ( $wgLitusAdminUserid !== false && $litusUser->username === $wgLitusAdminUserid )
                 $validRequest = true;
@@ -162,46 +162,46 @@ function fnLitusAuthFromSession( $user, &$result ) {
                 $u2 = User::newFromName( ucfirst( $litusUser->full_name ) );
                 if ( $u2->getID() != 0 ) {
                     // if user already logged in with the old system, rename the user
-                    
+
                     $u = $u2;
                     $old = $litusUser->full_name;
                     $new = $username;
                     $uid = $u->getID();
-                    
+
                     // we should really use a job to make this faster, but this will
                     // run on the user being changed, which makes running a job quite
                     // impossible.
-                    
+
                     $dbw = wfGetDB( DB_MASTER );
                     $dbw->begin();
-                    
+
                     $dbw->update( 'user', // UPDATE user
                         // SET user_name="...", user_touched=...
-                        array( 'user_name' => $new, 'user_touched' => $dbw->timestamp() ), 
+                        array( 'user_name' => $new, 'user_touched' => $dbw->timestamp() ),
                         // WHERE user_name="..." AND user_id=...
-                        array( 'user_name' => $old, 'user_id' => $uid ), 
+                        array( 'user_name' => $old, 'user_id' => $uid ),
                         __METHOD__
                     );
-                    
+
                     if ( !$dbw->affectedRows() ) {
                         die( 'Failed to change username from ' . $old . ' to ' . $new . '.' );
                     }
-                    
+
                     // clear authentication tokens
                     $u = User::newFromId( $uid );
                     $authUser = $wgAuth->getUserInstance( $u );
                     $authUser->resetAuthToken();
-                    
+
                     // delete memcache entry (if used?)
                     $wgMemc->delete( wfMemcKey( 'user', 'id', $uid ) );
-                    
+
                     // Update ipblock list if this user has a block in there.
                     $dbw->update( 'ipblocks',
                         array( 'ipb_address' => $new ),
                         array( 'ipb_user' => $uid, 'ipb_address' => $old ),
                         __METHOD__
                     );
-                    
+
                     // Update this users block/rights log. Ideally, the logs would be historical,
                     // but it is really annoying when users have "clean" block logs by virtue of
                     // being renamed, which makes admin tasks more of a pain...
@@ -214,14 +214,14 @@ function fnLitusAuthFromSession( $user, &$result ) {
                                'log_title' => $oldTitle->getDBkey() ),
                         __METHOD__
                     );
-                    
+
                     // commit
                     $dbw->commit();
-                    
+
                     $wgAuth->updateExternalDB( $u );
                 } else { // $u2 does not exist
                     // if the user has never logged in before, create user
-                    
+
                     $u->addToDatabase();
                     $u->setRealName( $litusUser->full_name );
                     $u->setEmail( $litusUser->email );
@@ -230,7 +230,7 @@ function fnLitusAuthFromSession( $user, &$result ) {
                     $u->mEmailAuthenticated = wfTimestampNow();
 
                     // set the password to an unexisting md5 hash:
-                    $u->setPassword( '*' ); 
+                    $u->setPassword( '*' );
 
                     $u->setToken();
                     $u->saveSettings();
