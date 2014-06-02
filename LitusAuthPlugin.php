@@ -179,7 +179,7 @@ function fnLitusAuthFromSession( $user, &$result ) {
                         // SET user_name="...", user_touched=...
                         array( 'user_name' => $new, 'user_touched' => $dbw->timestamp() ),
                         // WHERE user_name="..." AND user_id=...
-                        array( 'LOWER(user_name)' => strtolower($old), 'user_id' => $uid ),
+                        array( 'user_id' => $uid ),
                         __METHOD__
                     );
 
