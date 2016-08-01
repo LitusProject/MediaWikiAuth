@@ -37,8 +37,10 @@ $wgLitusServer = '';
 
 /* Required status to be allowed to log in */
 $wgLitusRequiredStatus = array(
+    'anyone_can_enter' => false,
     'university_status' => false,
-    'organization_status' => false
+    'organization_status' => false,
+    'in_workinggroup_status' => false
 );
 
 /* The web page to redirect to if the user has an invalid status. */
@@ -136,13 +138,20 @@ function fnLitusAuthFromSession( $user, &$result ) {
             }
 
             // if not a valid status, redirect to page set by user
-            $validRequest = true;
-            if ( $wgLitusRequiredStatus['university_status'] !== false
-                    && $litusUser->university_status !== $wgLitusRequiredStatus['university_status'] )
-                $validRequest = false;
-            if ( $wgLitusRequiredStatus['organization_status'] !== false
-                     && $litusUser->organization_status !== $wgLitusRequiredStatus['organization_status'] )
-                $validRequest = false;
+            $validRequest = false;
+            if ($wgLitusRequiredStatus['anyone_can_enter'] !== false
+                     && true === $wgLitusRequiredStatus['anyone_can_enter'])
+                $validRequest = true;
+            elseif ( $wgLitusRequiredStatus['university_status'] !== false
+                     && $litusUser->university_status === $wgLitusRequiredStatus['university_status'] )
+                $validRequest = true;
+            elseif ( $wgLitusRequiredStatus['organization_status'] !== false
+                     && $litusUser->organization_status === $wgLitusRequiredStatus['organization_status'] )
+                $validRequest = true;
+            elseif ($wgLitusRequiredStatus['in_workinggroup_status'] !== false
+                     && $litusUser->in_workinggroup === $wgLitusRequiredStatus['in_workinggroup_status'] )
+                $validRequest = true;
+
             if ( $wgLitusAdminUserid !== false && $litusUser->username === $wgLitusAdminUserid )
                 $validRequest = true;
             if ( !$validRequest ) {
