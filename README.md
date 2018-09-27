@@ -40,10 +40,10 @@ $wgLitusAPIKey = 'abcdefghijklmnopqrstuvwxyz';
 $wgLitusServer = 'https://litus.cc';
 
 /* Required status to be allowed to log in */
-$wgLitusRequiredStatus = array(
-    'university_status' => false,
-    'organization_status' => false
-);
+$wgLitusRequiredStatus['anyone_can_enter'] = false;
+$wgLitusRequiredStatus['university_status'] = false;
+$wgLitusRequiredStatus['organization_status'] = false;
+$wgLitusRequiredStatus['in_workinggroup_status'] = false;
 
 /* The web page to redirect to if the user has an invalid status, false if not set. */
 $wgLitusInvalidStatusRedirect = false;
