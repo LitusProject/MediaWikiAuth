@@ -88,8 +88,14 @@ class LitusApi {
         $postData['key'] = $wgLitusAPIKey;
         $postData['session'] = $_COOKIE[$wgLitusAuthCookie];
 
-        $result = Http::post( $wgLitusAPIServer . $url, array( 'postData' => $postData ) );
-
+        //$result = Http::post( $wgLitusAPIServer . $url, array( 'postData' => $postData ) );
+	$ch = curl_init();
+	curl_setopt($ch, CURLOPT_URL, $wgLitusAPIServer.$url);
+	curl_setopt($ch, CURLOPT_POST, 1);
+	curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($postData));
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+	$result = curl_exec($ch);
+	curl_close($ch);
         if ( preg_match( '/error/', $result ) )
             return false;
         return $result;
